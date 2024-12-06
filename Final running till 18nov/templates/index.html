@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>विप्रVivah</title>
+    <!-- Corrected link to the CSS file using Flask's url_for -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+            विप्रVivah
+        </a>
+        <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Contact</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropbtn">Login/Register</a>
+            </li>
+            <li><a href="#">Help</a></li>
+        </ul>
+    </nav>
+
+    <!-- Header Section with Background Image -->
+    <div class="hero-content">
+        <!-- Update the form action to point to / and method to POST -->
+        <form action="{{ url_for('index_submit') }}" method="POST" class="search-form">
+            <div class="form-group">
+                <label for="looking_for">I'm looking for a</label>
+                <select id="looking_for" name="looking_for" required>
+                    <option value="" disabled selected>Girl/Boy</option>
+                    <option value="Boy">Boy</option>
+                    <option value="Girl">Girl</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="age_min">Aged</label>
+                <select id="age_min" name="age_min" required>
+                    <option value="" disabled selected>Min Age</option>
+                    <!-- Age Options -->
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                    <option value="32">32</option>
+                    <option value="33">33</option>
+                    <option value="34">34</option>
+                    <option value="35">35</option>
+                    <option value="36">36</option>
+                    <option value="37">37</option>
+                    <option value="38">38</option>
+                    <option value="39">39</option>
+                    <option value="40">40</option>
+                    <option value="41">41</option>
+                    <!-- Add other age options as needed -->
+                </select>
+                <label for="age_max">to</label>
+                <select id="age_max" name="age_max" required>
+                    <option value="" disabled selected>Max Age</option>
+                    <!-- Age Options -->
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                    <option value="32">32</option>
+                    <option value="33">33</option>
+                    <option value="34">34</option>
+                    <option value="35">35</option>
+                    <option value="36">36</option>
+                    <option value="37">37</option>
+                    <option value="38">38</option>
+                    <option value="39">39</option>
+                    <option value="40">40</option>
+                    <option value="41">41</option>
+                    <!-- Add other age options as needed -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="mother_tongue">Mother Tongue</label>
+                <select id="mother_tongue" name="mother_tongue" required>
+                    <option value="" disabled selected>Select</option>
+                    <option value="hindi">Hindi</option>
+                    <option value="bengali">Bengali</option>
+                    <option value="marathi">Marathi</option>
+                    <option value="tamil">Tamil</option>
+                    <option value="telugu">Telugu</option>
+                    <option value="gujarati">Gujarati</option>
+                    <option value="kannada">Kannada</option>
+                    <option value="odia">Odia</option>
+                    <option value="malayalam">Malayalam</option>
+                    <option value="punjabi">Punjabi</option>
+                    <!-- Add more languages as needed -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="gotra">Gotra</label>
+                <select id="gotra" name="gotra" required>
+                    <option value="" disabled selected>Select Gotra</option>
+                    <option value="kashyap">Kashyap</option>
+                    <option value="bharadwaj">Bharadwaj</option>
+                    <option value="vishwamitra">Vishwamitra</option>
+                    <option value="atri">Atri</option>
+                    <option value="agastya">Agastya</option>
+                    <option value="gautam">Gautam</option>
+                    <!-- Add more Gotras as needed -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Let's Begin" class="btn btn-primary">
+            </div>
+        </form>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Matrimonial Website. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Corrected link to the JS file using Flask's url_for -->
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

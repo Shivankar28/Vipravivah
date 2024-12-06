@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;  /* Ensures the container is vertically centered */
+}
+
+.container {
+    width: 80%;
+    max-width: 800px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;  /* Center-align text inside the container */
+}
+
+h1 {
+    color: #4CAF50;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.section {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+.section img {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 50%; /* Makes the image circular */
+    object-fit: cover; /* Ensures the image fills the circle without distortion */
+    border: 2px solid #4CAF50; /* Optional: adds a border around the circle */
+}
+
+
+.section h2 {
+    color: #4CAF50;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.section p {
+    font-size: 1em;
+    margin: 5px 0;
+    line-height: 1.5;
+}
+
+strong {
+    color: #555;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.confirm-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+}
+
+.confirm-button:hover {
+    background-color: #45a049;
+    transition: background-color 0.3s;
+}
