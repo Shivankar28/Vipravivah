@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Profiles</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/explore.css') }}">
+</head>
+<body>
+    <!-- Navbar Section -->
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}" class="navbar-brand">विप्रVivah</a>
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('explore') }}">Contact Us</a></li>
+            <li><a href="{{ url_for('myprofile') }}">My Account</a></li>
+        </ul>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="card-container">
+        {% for profile in profiles %}
+            <a href="{{ url_for('profile_detail', profile_id=profile.id) }}" class="card">
+                {% if profile.profile_picture %}
+                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + profile.profile_picture) }}" 
+                         alt="{{ profile.name_first }}'s Profile Picture" 
+                         class="profile-picture" style="max-width: 150px; max-height: 150px;">
+                {% else %}
+                    <p>No profile picture uploaded.</p>
+                {% endif %}
+                <h3>{{ profile.name_first }} {{ profile.name_last }}</h3>
+                <p>Gender: {{ profile.gender }}</p>
+                <p>Looking For: {{ profile.looking_for }}</p>
+                <p>Mother Tongue: {{ profile.mother_tongue }}</p>
+                <p>Age Range: {{ profile.age_min }} - {{ profile.age_max }}</p>
+            </a>
+        {% endfor %}
+    </div>
+    <footer>
+        <div class="container">
+            <p>Disclaimer
+
+                The information provided on this website is solely the responsibility of the individual 
+                submitting it. We do not verify or guarantee the accuracy, completeness, or reliability 
+                of any data filled by users. Users and interested parties should exercise due diligence 
+                and independently verify all information before taking any action based on it.</p>
+            <p>&copy; 2024 Matrimonial Website. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
