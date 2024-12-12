@@ -1,1 +1,1 @@
-from wgsi import app
+from wsgi import app
