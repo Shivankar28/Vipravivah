@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Created Successfully</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/psuccess.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Your Profile Has Been Created Successfully!</h1>
+      
+        <!-- Explore Button -->
+        <a href="{{ url_for('login_register') }}" class="btn btn-primary">Explore Profiles</a>
+    </div>
+</body>
+</html>
