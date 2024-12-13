@@ -191,7 +191,7 @@
         {% for profile in profiles %}
             <a href="{{ url_for('profile_detail', profile_id=profile.id) }}" class="card">
                 {% if profile.profile_picture %}
-                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + profile.profile_picture) }}" 
+                    <img src="{{profile.profile_picture}}" 
                          alt="{{ profile.name_first }}'s Profile Picture" 
                          class="profile-picture" style="max-width: 150px; max-height: 150px;">
                 {% else %}
