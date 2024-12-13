@@ -6,9 +6,40 @@ from werkzeug.utils import secure_filename
 import time
 import os
 
+
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
+
+# Configuration       
+cloudinary.config( 
+    cloud_name = "dud9elfag", 
+    api_key = "566776174283142", 
+    api_secret = "yc2tiq-RNmTW2ul0TiQLOlTbNHA", # Click 'View API Keys' above to copy your API secret
+    secure=True
+)
+
+# Upload an image
+upload_result = cloudinary.uploader.upload("https://res.cloudinary.com/demo/image/upload/getting-started/shoes.jpg",
+                                           public_id="shoes")
+print(upload_result["secure_url"])
+
+def upload_file(file):
+    try:
+        # first assign folder and resource-type based on filetype:
+        result = cloudinary.uploader.upload(
+            file,
+            resource_type='image'
+        )
+        return {"success": True, "secure_url": result['secure_url'], "public_id": result['public_id']}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with your actual secret key
-app.config['UPLOAD_FOLDER'] = 'uploads/profile_pictures'
+app.config['UPLOAD_FOLDER'] = '/static/uploads/profile_pictures'
+print(app.config['UPLOAD_FOLDER'])
 
 db_config = {
     'host': 'mysql-385e1d9b-shivankar-b189.b.aivencloud.com',
@@ -58,6 +89,8 @@ def get_user_by_username(username):
     sql = "SELECT * FROM users WHERE username = %s"
     result = query_data(sql, (username,))
     return result[0] if result else None
+
+
 
 @app.route('/')
 def home():
@@ -200,7 +233,7 @@ def profile3():
     return render_template('profile3.html')
 
 
-app.config['UPLOAD_FOLDER'] = 'static/uploads/profile_pictures'
+# app.config['UPLOAD_FOLDER'] = 'static/uploads/profile_pictures'
 
 @app.route('/profile4', methods=['GET', 'POST'])
 def profile4():
@@ -215,12 +248,11 @@ def profile4():
         profile_picture = request.files.get('profile_picture')
         if profile_picture:
             # Secure the filename and save the file
-            filename = secure_filename(profile_picture.filename)
-            picture_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            profile_picture.save(picture_path)
-            
+            file_meta_data = upload_file(profile_picture)
+            if file_meta_data['success'] == False:
+                print('FUCK, error uploading file')            
             # Store the relative path in the data dictionary
-            data['profile_picture'] = filename  # Store only the filename
+            data['profile_picture'] = file_meta_data['secure_url']  # Store only the filename
 
         # Save data in session and database
         session['profile4'] = data  # Store in session
