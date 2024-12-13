@@ -25,7 +25,7 @@
         <!-- Profile Picture Section -->
         <div class="profile-picture-section">
             {% if profile['profile_picture'] %}
-                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + profile['profile_picture']) }}" 
+                <img src="{{profile['profile_picture']}}" 
                      alt="{{ profile['name_first'] }}'s Profile Picture" class="profile-picture">
             {% else %}
                 <p>No profile picture uploaded.</p>
