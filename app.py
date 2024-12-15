@@ -53,11 +53,17 @@ def insert_data(table, data):
     print('\n\n\n inside insert_data with table=',table,'and data=',data)
     retries = 3
     for attempt in range(retries):
+        print('attempt:',attempt)
         try:
             connection = mysql.connector.connect(**db_config)
             cursor = connection.cursor()
+            print('joining placeholders')
             placeholders = ', '.join(['%s'] * len(data))
+            print('placeholders: ',placeholders)
+            print('joining columns')
             columns = ', '.join(data.keys())
+            print('colmns: ',columns)
+            print('making sql query:')
             sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
             print('\n\n\n SQL QUERY :', sql)
             cursor.execute(sql, list(data.values()))
