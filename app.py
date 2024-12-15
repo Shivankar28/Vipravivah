@@ -50,14 +50,22 @@ db_config = {
 }
 
 def insert_data(table, data):
+    print('\n\n\n inside insert_data with table=',table,'and data=',data)
     retries = 3
     for attempt in range(retries):
+        print('attempt:',attempt)
         try:
             connection = mysql.connector.connect(**db_config)
             cursor = connection.cursor()
+            print('joining placeholders')
             placeholders = ', '.join(['%s'] * len(data))
+            print('placeholders: ',placeholders)
+            print('joining columns')
             columns = ', '.join(data.keys())
+            print('colmns: ',columns)
+            print('making sql query:')
             sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
+            print('\n\n\n SQL QUERY :', sql)
             cursor.execute(sql, list(data.values()))
             connection.commit()
             cursor.close()
@@ -90,6 +98,10 @@ def get_user_by_username(username):
     result = query_data(sql, (username,))
     return result[0] if result else None
 
+def get_user_by_email(email):
+    sql = "SELECT * FROM users WHERE email = %s"
+    result = query_data(sql, (email,))
+    return result[0] if result else None
 
 
 @app.route('/')
@@ -106,22 +118,27 @@ def register():
     password = request.form.get('password')
     email = request.form.get('email')
 
+    # Check if the username already exists
     existing_user = get_user_by_username(username)
     if existing_user:
         flash("Username already taken. Please choose another one.", "danger")
         return redirect(url_for('login_register'))
 
-    data = {
+    # Check if the email already exists
+    existing_email = get_user_by_email(email)
+    if existing_email:
+        flash("Email ID already in use. Please use another email.", "danger")
+        return redirect(url_for('login_register'))
+
+    # Store data in session to commit later
+    session['register_data'] = {
         'username': username,
-        'password': password,  # In a real-world application, never store passwords as plain text
+        'password': password,  # Always hash passwords in a real-world application
         'email': email
     }
-    try:
-        insert_data('users', data)
-        flash("Registration successful. You can now log in.", "success")
-    except Exception as e:
-        flash("Registration failed. Please try again.", "danger")
+    print('\n\n\n SESSION USERNAME:',session['register_data'])
 
+    flash("Registration successful. You can now log in.", "success")
     return redirect(url_for('index'))
 
 @app.route('/login', methods=['POST'])
@@ -150,18 +167,10 @@ def index_submit():
         'age_min': request.form.get('age_min'),
         'age_max': request.form.get('age_max'),
         'mother_tongue': request.form.get('mother_tongue'),
-        
     }
+    print('\n\n\n SESSION USERNAME IN INDEX_SUBMIT:',session['register_data'])
     session['profile_data'] = data
-    try:
-        insert_data('profiles', data)
-        print("Data inserted successfully:", data)
-    except Exception as e:
-        print("Data insertion failed:", str(e))
-        flash("Failed to insert data.", "danger")
-        return redirect(url_for('index'))  # Redirect back to index if insertion fails
-    
-    return redirect(url_for('profile'))  # Redirect to the profile page after succes
+    return redirect(url_for('profile'))
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -173,19 +182,16 @@ def profile():
             'name_middle': request.form.get('middle_name'),
             'name_last': request.form.get('last_name'),
             'dob': request.form.get('dob'),
-            'age': request.form.get('age'),  # Directly capture age from the form
+            'age': request.form.get('age'),
             'religion': request.form.get('religion'),
-            'gotra': request.form.get('gotra'),  # Capture gotra from the form
-            'mother_tongue': request.form.get('mother_tongue'),  # Capture mother tongue from the form
+            'mother_tongue': request.form.get('mother_tongue'),
             'email': request.form.get('email'),
             'phone': request.form.get('phone')
         }
-        session['profile'] = data  # Store in session
-        insert_data('profile', data)
-        print("Data inserted successfully:", data)
+        session['profile'] = data
+        print('\n\n\n SESSION USERNAME IN PROFILE:',session['register_data'])
         return redirect(url_for('profile2'))
     return render_template('profile.html')
-
 
 @app.route('/profile2', methods=['GET', 'POST'])
 def profile2():
@@ -203,15 +209,14 @@ def profile2():
             'perm_pincode': request.form.get('perm_pincode'),
             'lives_with_family': request.form.get('lives_with_family'),
             'marital_status': request.form.get('marital_status'),
-            'diet': ','.join(request.form.getlist('diet'))  # Convert list to comma-separated string
+            'diet': ','.join(request.form.getlist('diet'))
         }
-        session['profile2'] = data  # Store in session
-        insert_data('profile2', data)
-        print("Data inserted successfully:", data)
+        session['profile2'] = data
+        print('\n\n\n SESSION USERNAME IN PROFILE 2:',session['register_data'])
+
         return redirect(url_for('profile3'))
     return render_template('profile2.html')
 
-@app.route('/profile3', methods=['GET', 'POST'])
 @app.route('/profile3', methods=['GET', 'POST'])
 def profile3():
     if request.method == 'POST':
@@ -222,18 +227,14 @@ def profile3():
             'works_with': request.form.get('works_with'),
             'job_title': request.form.get('job_title'),
             'income': request.form.get('income'),
-            'instagram': request.form.get('instagram'),  # Get Instagram profile link
-            'facebook': request.form.get('facebook'),    # Get Facebook profile link
-            'linkedin': request.form.get('linkedin')     # Get LinkedIn profile link
+            'instagram': request.form.get('instagram'),
+            'facebook': request.form.get('facebook'),
+            'linkedin': request.form.get('linkedin')
         }
-        session['profile3'] = data  # Store in session
-        insert_data('profile3', data)
-        print("Data inserted successfully:", data)
+        session['profile3'] = data
+        print('\n\n\n SESSION USERNAME IN PROFILE 3:',session['register_data'])
         return redirect(url_for('profile4'))
     return render_template('profile3.html')
-
-
-# app.config['UPLOAD_FOLDER'] = 'static/uploads/profile_pictures'
 
 @app.route('/profile4', methods=['GET', 'POST'])
 def profile4():
@@ -267,9 +268,20 @@ def profile4():
             return redirect(url_for('success'))
     return render_template('profile4.html')
 
+
 @app.route('/success')
 def success():
-    # Collect data from session, including profile picture path
+    try:
+        print('/n/n/n trying to insert users data')
+        insert_data('users', session.get('register_data', {}))
+        insert_data('profiles', session.get('profile_data', {}))
+        insert_data('profile', session.get('profile', {}))
+        insert_data('profile2', session.get('profile2', {}))
+        insert_data('profile3', session.get('profile3', {}))
+        flash('Profile created successfully!', 'success')
+    except Exception as e:
+        flash(f'An error occurred: {str(e)}', 'danger')
+    
     profile_data = {
         'profiles': session.get('profile_data', {}),
         'profile': session.get('profile', {}),
@@ -278,6 +290,7 @@ def success():
         'profile4': session.get('profile4', {})
     }
     return render_template('success.html', profile_data=profile_data)
+
 @app.route('/profile_success')
 def profile_success():
     return render_template('profile_success.html')
@@ -294,6 +307,8 @@ def explore():
     gotra_to_avoid = request.args.get('gotra')
     city = request.args.get('city')  # New filter for city
 
+    logged_in_user_id = session['user_id']  # Get the logged-in user's ID
+
     try:
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
@@ -309,20 +324,32 @@ def explore():
         LEFT JOIN profile2 p2 ON p.id = p2.id
         LEFT JOIN profile3 p3 ON p.id = p3.id
         LEFT JOIN profile4 p4 ON p.id = p4.id
-        WHERE 1=1
-        """
+        WHERE p.id != %s
+        """  # Exclude the logged-in user's profile
 
         # Add filter conditions dynamically if provided
         if looking_for and looking_for.lower() != 'none':
-            query += f" AND pr.looking_for = '{looking_for}'"
+            query += " AND pr.looking_for = %s"
         if mother_tongue and mother_tongue.lower() != 'none':
-            query += f" AND pr.mother_tongue = '{mother_tongue}'"
+            query += " AND pr.mother_tongue = %s"
         if gotra_to_avoid and gotra_to_avoid.lower() != 'none':
-            query += f" AND p.gotra != '{gotra_to_avoid}'"
+            query += " AND p.gotra != %s"
         if city and city.lower() != 'none':
-            query += f" AND (p2.temp_city = '{city}' OR p2.perm_city = '{city}')"
+            query += " AND (p2.temp_city = %s OR p2.perm_city = %s)"
 
-        cursor.execute(query)
+        # Prepare parameters for the query
+        params = [logged_in_user_id]
+        if looking_for and looking_for.lower() != 'none':
+            params.append(looking_for)
+        if mother_tongue and mother_tongue.lower() != 'none':
+            params.append(mother_tongue)
+        if gotra_to_avoid and gotra_to_avoid.lower() != 'none':
+            params.append(gotra_to_avoid)
+        if city and city.lower() != 'none':
+            params.extend([city, city])
+
+        # Execute the query with parameters
+        cursor.execute(query, params)
         profiles = cursor.fetchall()
 
         cursor.close()
