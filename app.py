@@ -50,6 +50,7 @@ db_config = {
 }
 
 def insert_data(table, data):
+    print('\n\n\n inside insert_data with table=',table,'and data=',data)
     retries = 3
     for attempt in range(retries):
         try:
@@ -58,6 +59,7 @@ def insert_data(table, data):
             placeholders = ', '.join(['%s'] * len(data))
             columns = ', '.join(data.keys())
             sql = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
+            print('\n\n\n SQL QUERY :', sql)
             cursor.execute(sql, list(data.values()))
             connection.commit()
             cursor.close()
@@ -128,6 +130,7 @@ def register():
         'password': password,  # Always hash passwords in a real-world application
         'email': email
     }
+    print('\n\n\n SESSION USERNAME:',session['register_data'])
 
     flash("Registration successful. You can now log in.", "success")
     return redirect(url_for('index'))
@@ -159,6 +162,7 @@ def index_submit():
         'age_max': request.form.get('age_max'),
         'mother_tongue': request.form.get('mother_tongue'),
     }
+    print('\n\n\n SESSION USERNAME IN INDEX_SUBMIT:',session['register_data'])
     session['profile_data'] = data
     return redirect(url_for('profile'))
 
@@ -179,6 +183,7 @@ def profile():
             'phone': request.form.get('phone')
         }
         session['profile'] = data
+        print('\n\n\n SESSION USERNAME IN PROFILE:',session['register_data'])
         return redirect(url_for('profile2'))
     return render_template('profile.html')
 
@@ -201,6 +206,8 @@ def profile2():
             'diet': ','.join(request.form.getlist('diet'))
         }
         session['profile2'] = data
+        print('\n\n\n SESSION USERNAME IN PROFILE 2:',session['register_data'])
+
         return redirect(url_for('profile3'))
     return render_template('profile2.html')
 
@@ -219,6 +226,7 @@ def profile3():
             'linkedin': request.form.get('linkedin')
         }
         session['profile3'] = data
+        print('\n\n\n SESSION USERNAME IN PROFILE 3:',session['register_data'])
         return redirect(url_for('profile4'))
     return render_template('profile3.html')
 
@@ -234,12 +242,15 @@ def profile4():
             file_meta_data = upload_file(profile_picture)
             data['profile_picture'] = file_meta_data.get('secure_url')
         session['profile4'] = data
+        print('\n\n\n SESSION USERNAME IN PROFILE 4:',session['register_data'])
+
         return redirect(url_for('success'))
     return render_template('profile4.html')
 
 @app.route('/success')
 def success():
     try:
+        print('/n/n/n trying to insert users data')
         insert_data('users', session.get('register_data', {}))
         insert_data('profiles', session.get('profile_data', {}))
         insert_data('profile', session.get('profile', {}))
