@@ -257,15 +257,16 @@ def profile4():
 
         # Save data in session and database
         session['profile4'] = data  # Store in session
-        try:
-            # Adjust `insert_data` to handle profile_picture insertion correctly
-            insert_data('profile4', data)  # This should save data, including profile_picture, to your database
-            print("Data inserted successfully:", data)
-            flash('Profile created successfully!', 'success')
-            return redirect(url_for('success'))  # Redirect to success page
-        except Exception as e:
-            flash(f'An error occurred: {str(e)}', 'danger')
-            return redirect(url_for('success'))
+        return redirect(url_for('success'))
+        # try:
+        #     # Adjust `insert_data` to handle profile_picture insertion correctly
+        #     #insert_data('profile4', data)  # This should save data, including profile_picture, to your database
+        #     print("Data inserted successfully:", data)
+        #     flash('Profile created successfully!', 'success')
+        #     return redirect(url_for('success'))  # Redirect to success page
+        # except Exception as e:
+        #     flash(f'An error occurred: {str(e)}', 'danger')
+        #     return redirect(url_for('success'))
     return render_template('profile4.html')
 
 
@@ -278,6 +279,7 @@ def success():
         insert_data('profile', session.get('profile', {}))
         insert_data('profile2', session.get('profile2', {}))
         insert_data('profile3', session.get('profile3', {}))
+        insert_data('profile4', session.get('profile4', {}))
         flash('Profile created successfully!', 'success')
     except Exception as e:
         flash(f'An error occurred: {str(e)}', 'danger')
