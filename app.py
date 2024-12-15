@@ -106,38 +106,49 @@ def register():
     password = request.form.get('password')
     email = request.form.get('email')
 
+    # Check if the username already exists
     existing_user = get_user_by_username(username)
     if existing_user:
         flash("Username already taken. Please choose another one.", "danger")
         return redirect(url_for('login_register'))
 
+    # Check if the email already exists
+    existing_email = get_user_by_email(email)
+    if existing_email:
+        flash("Email ID already in use. Please use another email.", "danger")
+        return redirect(url_for('login_register'))
+
+    # If no conflicts, proceed with registration
     data = {
         'username': username,
-        'password': password,  # In a real-world application, never store passwords as plain text
+        'password': password,  # Always hash passwords in a real-world application
         'email': email
     }
     try:
         insert_data('users', data)
         flash("Registration successful. You can now log in.", "success")
+        return redirect(url_for('index'))
     except Exception as e:
         flash("Registration failed. Please try again.", "danger")
-
-    return redirect(url_for('index'))
-
+        return redirect(url_for('login_register'))
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form.get('username')
     password = request.form.get('password')
 
+    # Check if the user exists
     user = get_user_by_username(username)
     if user and user['password'] == password:
+        # Set session for logged-in user
         session['user_id'] = user['id']
         session['username'] = user['username']
         flash("Login successful.", "success")
         return redirect(url_for('explore'))
     else:
+        # Flash failure message only when credentials are invalid
         flash("Login failed. Please check your credentials and try again.", "danger")
         return redirect(url_for('login_register'))
+
 
 @app.route('/index')
 def index():
