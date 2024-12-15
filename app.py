@@ -90,10 +90,6 @@ def get_user_by_username(username):
     result = query_data(sql, (username,))
     return result[0] if result else None
 
-def get_user_by_email(email):
-    sql = "SELECT * FROM users WHERE email = %s"
-    result = query_data(sql, (email,))
-    return result[0] if result else None
 
 
 @app.route('/')
@@ -122,30 +118,37 @@ def register():
         flash("Email ID already in use. Please use another email.", "danger")
         return redirect(url_for('login_register'))
 
-    # Store data in session to commit later
-    session['register_data'] = {
+    # If no conflicts, proceed with registration
+    data = {
         'username': username,
         'password': password,  # Always hash passwords in a real-world application
         'email': email
     }
-
-    flash("Registration successful. You can now log in.", "success")
-    return redirect(url_for('index'))
-
+    try:
+        insert_data('users', data)
+        flash("Registration successful. You can now log in.", "success")
+        return redirect(url_for('index'))
+    except Exception as e:
+        flash("Registration failed. Please try again.", "danger")
+        return redirect(url_for('login_register'))
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form.get('username')
     password = request.form.get('password')
 
+    # Check if the user exists
     user = get_user_by_username(username)
     if user and user['password'] == password:
+        # Set session for logged-in user
         session['user_id'] = user['id']
         session['username'] = user['username']
         flash("Login successful.", "success")
         return redirect(url_for('explore'))
     else:
+        # Flash failure message only when credentials are invalid
         flash("Login failed. Please check your credentials and try again.", "danger")
         return redirect(url_for('login_register'))
+
 
 @app.route('/index')
 def index():
@@ -158,9 +161,18 @@ def index_submit():
         'age_min': request.form.get('age_min'),
         'age_max': request.form.get('age_max'),
         'mother_tongue': request.form.get('mother_tongue'),
+        
     }
     session['profile_data'] = data
-    return redirect(url_for('profile'))
+    try:
+        insert_data('profiles', data)
+        print("Data inserted successfully:", data)
+    except Exception as e:
+        print("Data insertion failed:", str(e))
+        flash("Failed to insert data.", "danger")
+        return redirect(url_for('index'))  # Redirect back to index if insertion fails
+    
+    return redirect(url_for('profile'))  # Redirect to the profile page after succes
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -172,15 +184,19 @@ def profile():
             'name_middle': request.form.get('middle_name'),
             'name_last': request.form.get('last_name'),
             'dob': request.form.get('dob'),
-            'age': request.form.get('age'),
+            'age': request.form.get('age'),  # Directly capture age from the form
             'religion': request.form.get('religion'),
-            'mother_tongue': request.form.get('mother_tongue'),
+            'gotra': request.form.get('gotra'),  # Capture gotra from the form
+            'mother_tongue': request.form.get('mother_tongue'),  # Capture mother tongue from the form
             'email': request.form.get('email'),
             'phone': request.form.get('phone')
         }
-        session['profile'] = data
+        session['profile'] = data  # Store in session
+        insert_data('profile', data)
+        print("Data inserted successfully:", data)
         return redirect(url_for('profile2'))
     return render_template('profile.html')
+
 
 @app.route('/profile2', methods=['GET', 'POST'])
 def profile2():
@@ -198,12 +214,15 @@ def profile2():
             'perm_pincode': request.form.get('perm_pincode'),
             'lives_with_family': request.form.get('lives_with_family'),
             'marital_status': request.form.get('marital_status'),
-            'diet': ','.join(request.form.getlist('diet'))
+            'diet': ','.join(request.form.getlist('diet'))  # Convert list to comma-separated string
         }
-        session['profile2'] = data
+        session['profile2'] = data  # Store in session
+        insert_data('profile2', data)
+        print("Data inserted successfully:", data)
         return redirect(url_for('profile3'))
     return render_template('profile2.html')
 
+@app.route('/profile3', methods=['GET', 'POST'])
 @app.route('/profile3', methods=['GET', 'POST'])
 def profile3():
     if request.method == 'POST':
@@ -214,42 +233,54 @@ def profile3():
             'works_with': request.form.get('works_with'),
             'job_title': request.form.get('job_title'),
             'income': request.form.get('income'),
-            'instagram': request.form.get('instagram'),
-            'facebook': request.form.get('facebook'),
-            'linkedin': request.form.get('linkedin')
+            'instagram': request.form.get('instagram'),  # Get Instagram profile link
+            'facebook': request.form.get('facebook'),    # Get Facebook profile link
+            'linkedin': request.form.get('linkedin')     # Get LinkedIn profile link
         }
-        session['profile3'] = data
+        session['profile3'] = data  # Store in session
+        insert_data('profile3', data)
+        print("Data inserted successfully:", data)
         return redirect(url_for('profile4'))
     return render_template('profile3.html')
+
+
+# app.config['UPLOAD_FOLDER'] = 'static/uploads/profile_pictures'
 
 @app.route('/profile4', methods=['GET', 'POST'])
 def profile4():
     if request.method == 'POST':
+        # Retrieve form data
         data = {
             'identity_type': request.form.get('identity_type'),
             'identity_number': request.form.get('identity_number')
         }
+        
+        # Handle profile picture upload
         profile_picture = request.files.get('profile_picture')
         if profile_picture:
+            # Secure the filename and save the file
             file_meta_data = upload_file(profile_picture)
-            data['profile_picture'] = file_meta_data.get('secure_url')
-        session['profile4'] = data
-        return redirect(url_for('success'))
+            if file_meta_data['success'] == False:
+                print('FUCK, error uploading file')            
+            # Store the relative path in the data dictionary
+            data['profile_picture'] = file_meta_data['secure_url']  # Store only the filename
+
+        # Save data in session and database
+        session['profile4'] = data  # Store in session
+        try:
+            # Adjust `insert_data` to handle profile_picture insertion correctly
+            insert_data('profile4', data)  # This should save data, including profile_picture, to your database
+            print("Data inserted successfully:", data)
+            flash('Profile created successfully!', 'success')
+            return redirect(url_for('success'))  # Redirect to success page
+        except Exception as e:
+            flash(f'An error occurred: {str(e)}', 'danger')
+            return redirect(url_for('success'))
     return render_template('profile4.html')
 
 @app.route('/success')
 def success():
-    try:
-        insert_data('users', session.get('register_data', {}))
-        insert_data('profiles', session.get('profile_data', {}))
-        insert_data('profile', session.get('profile', {}))
-        insert_data('profile2', session.get('profile2', {}))
-        insert_data('profile3', session.get('profile3', {}))
-        insert_data('profile4', session.get('profile4', {}))
-        flash('Profile created successfully!', 'success')
-    except Exception as e:
-        flash(f'An error occurred: {str(e)}', 'danger')
-    
+    # Collect data from session, including profile picture path
     profile_data = {
         'profiles': session.get('profile_data', {}),
         'profile': session.get('profile', {}),
@@ -258,7 +289,6 @@ def success():
         'profile4': session.get('profile4', {})
     }
     return render_template('success.html', profile_data=profile_data)
-
 @app.route('/profile_success')
 def profile_success():
     return render_template('profile_success.html')
@@ -275,8 +305,6 @@ def explore():
     gotra_to_avoid = request.args.get('gotra')
     city = request.args.get('city')  # New filter for city
 
-    logged_in_user_id = session['user_id']  # Get the logged-in user's ID
-
     try:
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
@@ -292,32 +320,20 @@ def explore():
         LEFT JOIN profile2 p2 ON p.id = p2.id
         LEFT JOIN profile3 p3 ON p.id = p3.id
         LEFT JOIN profile4 p4 ON p.id = p4.id
-        WHERE p.id != %s
-        """  # Exclude the logged-in user's profile
+        WHERE 1=1
+        """
 
         # Add filter conditions dynamically if provided
         if looking_for and looking_for.lower() != 'none':
-            query += " AND pr.looking_for = %s"
+            query += f" AND pr.looking_for = '{looking_for}'"
         if mother_tongue and mother_tongue.lower() != 'none':
-            query += " AND pr.mother_tongue = %s"
+            query += f" AND pr.mother_tongue = '{mother_tongue}'"
         if gotra_to_avoid and gotra_to_avoid.lower() != 'none':
-            query += " AND p.gotra != %s"
+            query += f" AND p.gotra != '{gotra_to_avoid}'"
         if city and city.lower() != 'none':
-            query += " AND (p2.temp_city = %s OR p2.perm_city = %s)"
+            query += f" AND (p2.temp_city = '{city}' OR p2.perm_city = '{city}')"
 
-        # Prepare parameters for the query
-        params = [logged_in_user_id]
-        if looking_for and looking_for.lower() != 'none':
-            params.append(looking_for)
-        if mother_tongue and mother_tongue.lower() != 'none':
-            params.append(mother_tongue)
-        if gotra_to_avoid and gotra_to_avoid.lower() != 'none':
-            params.append(gotra_to_avoid)
-        if city and city.lower() != 'none':
-            params.extend([city, city])
-
-        # Execute the query with parameters
-        cursor.execute(query, params)
+        cursor.execute(query)
         profiles = cursor.fetchall()
 
         cursor.close()
